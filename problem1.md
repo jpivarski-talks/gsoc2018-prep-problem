@@ -221,6 +221,6 @@ Some pairs of electrons come from Z bosons, some pairs of muons come from Z boso
 
 Write this up as a short paper mixing human-readable paragraphs and executable code (like this problem statement; use Markdown syntax). The important thing we want to see is your thought process, not the final result, and that's why we don't specify a grading scale. We want to see you weigh the pros and cons of various techniques to give us a sense of how you'll think about more complex problems this summer.
 
-Please e-mail your work to Jim Pivarski <pivarski@princeton.edu> and David Lange <david.lange@cern.ch>. Don't submit it as a pull request to this repository, because we don't want another applicant to be influenced by your ideas.
+Please e-mail your work to Jim Pivarski <pivarski@princeton.edu> and David Lange <david.lange@cern.ch>. Don't submit it as a pull request to this repository, because we don't want another applicant to be influenced by your ideas. Use the subject line "GSoC: DIANA-HEP/analysisfunctions" so that we don't lose track of your submission.
 
 Don't get hung up if you find that the Higgs mass is not 125 GeV (its true value). I think these events were simulated before the Higgs was discovered.
