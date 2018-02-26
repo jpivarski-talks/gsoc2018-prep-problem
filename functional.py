@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
+from oamap.proxy import ListProxy
+
 # This is a hack to make Python's list and iterator types functional.
-# It probably only works in Python 2.7.
 
 import ctypes
+from functools import reduce
 
 if hasattr(ctypes.pythonapi, "Py_InitModule4_64"):
     Py_ssize_t = ctypes.c_int64
@@ -30,7 +32,7 @@ def proxy_builtin(cls):
     )
 
     return namespace[name]
-    
+
 #### Define and attach functional methods to the Python "list" type.
 
 def sizer(lst):
@@ -50,7 +52,7 @@ def enumerater(lst):
     Example: ["a", "b", "c", "d", "e"].enumerate ==
                  [(0, "a"), (1, "b"), (2, "c"), (3, "d"), (4, "e")]
     """
-    if isinstance(lst, list):
+    if isinstance(lst, (list, tuple, ListProxy)):
         return list(enumerate(lst))
     else:
         return ((i, x) for i, x in enumerate(lst))
@@ -61,7 +63,7 @@ def taker(lst):
     
     Example: [1, 2, 3, 4, 5].take(3) == [1, 2, 3]
     """
-    if isinstance(lst, list):
+    if isinstance(lst, (list, tuple, ListProxy)):
         out = lambda n: lst[:n]
     else:
         def gen(n):
@@ -79,10 +81,21 @@ def collecter(lst):
 
     Example: (i for i in range(10)).collect == [i for i in range(10)]
     """
-    if isinstance(lst, list):
+    if isinstance(lst, (list, tuple, ListProxy)):
         return lst
     else:
         return list(lst)
+
+def lazyer(lst):
+    """
+    Make a list or generator lazy. This is a non-operation for generators, which are already lazy, but makes it possible to build up a chain of operations on a list without evaluating them.
+
+    Example: [1, 2, 3, 4, 5].lazy == (i for i in range(1, 6))
+    """
+    if isinstance(lst, (list, tuple, ListProxy)):
+        return (x for x in lst)
+    else:
+        return lst
 
 def mapper(lst):
     """
@@ -93,7 +106,7 @@ def mapper(lst):
     Examples: [1, 2, 3, 4, 5].map(f) == [f(1), f(2), f(3), f(4), f(5)]
               [1, 2, 3, 4, 5].map(lambda x: x + 100) == [101, 102, 103, 104, 105]
     """
-    if isinstance(lst, list):
+    if isinstance(lst, (list, tuple, ListProxy)):
         out = lambda f: [f(x) for x in lst]
     else:
         out = lambda f: (f(x) for x in lst)
@@ -108,7 +121,7 @@ def flattener(lst):
     Examples: [[1, 2], [3, 4, 5]].flatten == [1, 2, 3, 4, 5]
               [[1, 2], [3, [4, 5]]].flatten == [1, 2, 3, [4, 5]
     """
-    if isinstance(lst, list):
+    if isinstance(lst, (list, tuple, ListProxy)):
         return sum(lst, [])
     else:
         def gen():
@@ -136,7 +149,7 @@ def flatmapper(lst):
     handle the case when there are no particles after cuts. In that case, "flatmap" instead of "map" and
     return a singleton list [result] when you have a result and an empty list [] when you don't.
     """
-    if isinstance(lst, list):
+    if isinstance(lst, (list, tuple, ListProxy)):
         out = lambda f: sum((f(x) for x in lst), [])
     else:
         def gen(f):
@@ -156,7 +169,7 @@ def filterer(lst):
     
     Example: [1, 2, 3, 4, 5].filter(lambda x: x > 2) == [3, 4, 5]
     """
-    if isinstance(lst, list):
+    if isinstance(lst, (list, tuple, ListProxy)):
         out = lambda f: [x for x in lst if f(x)]
     else:
         def gen(f):
@@ -182,6 +195,14 @@ def reducer(lst):
     out.func_name = "[...].reduce"
     out.__doc__ = reducer.__doc__
     return out
+
+def sumer(lst):
+    """
+    Compute the sum of all elements in the list.
+
+    Example: [1, 2, 3, 4, 5].sum == 15
+    """
+    return sum(lst)
 
 def aggregator(lst):
     """
@@ -291,8 +312,10 @@ def tabler(lsts):
         else:
             return [[x] + y for x in first for y in buildargs(*rest)]
 
-    if len(lsts) < 2:
-        raise TypeError("table requires at least two arguments")
+    if len(lsts) == 0:
+        out = lambda f: []
+    elif len(lsts) == 1:
+        out = lambda f: [f(x) for x in lsts[0]]
     else:
         first = lsts[0]
         rest = lsts[1:]
@@ -316,30 +339,71 @@ def zipper(lsts):
     Example: [[1, 2, 3], ["a", "b", "c"], [101, 102, 103]].zip(lambda x, y, z: (x, y, z)) == [
                  (1, "a", 101), (2, "b", 102), (3, "c", 103)]
     """
-    if len(lsts) < 2:
-        raise TypeError("zip requires at least two arguments")
+    if len(lsts) == 0:
+        out = lambda f: []
+    elif len(lsts) == 1:
+        out = lambda f: [f(x) for x in lsts[0]]
     else:
         out = lambda f: [f(*args) for args in zip(*lsts)]
     out.func_name = "[[...], [...], ...].zip"
     out.__doc__ = zipper.__doc__
     return out
 
-# attach the methods                                               force Python to notice
-proxy_builtin(list)["size"] = property(sizer);                     hasattr([], "size")
-proxy_builtin(list)["enumerate"] = property(enumerater);           hasattr([], "enumerate")
-proxy_builtin(list)["take"] = property(taker);                     hasattr([], "take")
-proxy_builtin(list)["collect"] = property(collecter);              hasattr([], "collect")
-proxy_builtin(list)["map"] = property(mapper);                     hasattr([], "map")
-proxy_builtin(list)["flatten"] = property(flattener);              hasattr([], "flatten")
-proxy_builtin(list)["flatmap"] = property(flatmapper);             hasattr([], "flatmap")
-proxy_builtin(list)["filter"] = property(filterer);                hasattr([], "filter")
-proxy_builtin(list)["reduce"] = property(reducer);                 hasattr([], "reduce")
-proxy_builtin(list)["aggregate"] = property(aggregator);           hasattr([], "aggregate")
-proxy_builtin(list)["reduceright"] = property(reducerright);       hasattr([], "reduceright")
-proxy_builtin(list)["aggregateright"] = property(aggregatorright); hasattr([], "aggregateright")
-proxy_builtin(list)["pairs"] = property(pairser);                  hasattr([], "pairs")
-proxy_builtin(list)["table"] = property(tabler);                   hasattr([], "table")
-proxy_builtin(list)["zip"] = property(zipper);                     hasattr([], "zip")
+# attach the methods                                                force Python to notice
+proxy_builtin(list)["size"] = property(sizer);                      hasattr([], "size")
+proxy_builtin(list)["enumerate"] = property(enumerater);            hasattr([], "enumerate")
+proxy_builtin(list)["take"] = property(taker);                      hasattr([], "take")
+proxy_builtin(list)["collect"] = property(collecter);               hasattr([], "collect")
+proxy_builtin(list)["lazy"] = property(lazyer);                     hasattr([], "lazy")
+proxy_builtin(list)["map"] = property(mapper);                      hasattr([], "map")
+proxy_builtin(list)["flatten"] = property(flattener);               hasattr([], "flatten")
+proxy_builtin(list)["flatmap"] = property(flatmapper);              hasattr([], "flatmap")
+proxy_builtin(list)["filter"] = property(filterer);                 hasattr([], "filter")
+proxy_builtin(list)["reduce"] = property(reducer);                  hasattr([], "reduce")
+proxy_builtin(list)["sum"] = property(sumer);                       hasattr([], "sum")
+proxy_builtin(list)["aggregate"] = property(aggregator);            hasattr([], "aggregate")
+proxy_builtin(list)["reduceright"] = property(reducerright);        hasattr([], "reduceright")
+proxy_builtin(list)["aggregateright"] = property(aggregatorright);  hasattr([], "aggregateright")
+proxy_builtin(list)["pairs"] = property(pairser);                   hasattr([], "pairs")
+proxy_builtin(list)["table"] = property(tabler);                    hasattr([], "table")
+proxy_builtin(list)["zip"] = property(zipper);                      hasattr([], "zip")
+
+proxy_builtin(tuple)["size"] = property(sizer);                     hasattr((), "size")
+proxy_builtin(tuple)["enumerate"] = property(enumerater);           hasattr((), "enumerate")
+proxy_builtin(tuple)["take"] = property(taker);                     hasattr((), "take")
+proxy_builtin(tuple)["collect"] = property(collecter);              hasattr((), "collect")
+proxy_builtin(tuple)["lazy"] = property(lazyer);                    hasattr((), "lazy")
+proxy_builtin(tuple)["map"] = property(mapper);                     hasattr((), "map")
+proxy_builtin(tuple)["flatten"] = property(flattener);              hasattr((), "flatten")
+proxy_builtin(tuple)["flatmap"] = property(flatmapper);             hasattr((), "flatmap")
+proxy_builtin(tuple)["filter"] = property(filterer);                hasattr((), "filter")
+proxy_builtin(tuple)["reduce"] = property(reducer);                 hasattr((), "reduce")
+proxy_builtin(tuple)["sum"] = property(sumer);                      hasattr((), "sum")
+proxy_builtin(tuple)["aggregate"] = property(aggregator);           hasattr((), "aggregate")
+proxy_builtin(tuple)["reduceright"] = property(reducerright);       hasattr((), "reduceright")
+proxy_builtin(tuple)["aggregateright"] = property(aggregatorright); hasattr((), "aggregateright")
+proxy_builtin(tuple)["pairs"] = property(pairser);                  hasattr((), "pairs")
+proxy_builtin(tuple)["table"] = property(tabler);                   hasattr((), "table")
+proxy_builtin(tuple)["zip"] = property(zipper);                     hasattr((), "zip")
+
+# also attach them to OAMap ListProxies
+ListProxy.size = property(sizer)
+ListProxy.enumerate = property(enumerater)
+ListProxy.take = property(taker)
+ListProxy.collect = property(collecter)
+ListProxy.lazy = property(lazyer)
+ListProxy.map = property(mapper)
+ListProxy.flatten = property(flattener)
+ListProxy.flatmap = property(flatmapper)
+ListProxy.filter = property(filterer)
+ListProxy.reduce = property(reducer)
+ListProxy.sum = property(sumer)
+ListProxy.aggregate = property(aggregator)
+ListProxy.reduceright = property(reducerright)
+ListProxy.aggregateright = property(aggregatorright)
+ListProxy.pairs = property(pairser)
+ListProxy.table = property(tabler)
+ListProxy.zip = property(zipper)
 
 # Verify that they all work (and provide examples of their use).
 
@@ -392,6 +456,7 @@ example_generator = example_generator()
 proxy_builtin(type(example_generator))["enumerate"] = property(enumerater); hasattr(example_generator, "enumerate")
 proxy_builtin(type(example_generator))["take"] = property(taker);           hasattr(example_generator, "take")
 proxy_builtin(type(example_generator))["collect"] = property(collecter);    hasattr(example_generator, "collect")
+proxy_builtin(type(example_generator))["lazy"] = property(lazyer);          hasattr(example_generator, "lazy")
 proxy_builtin(type(example_generator))["map"] = property(mapper);           hasattr(example_generator, "map")
 proxy_builtin(type(example_generator))["flatten"] = property(flattener);    hasattr(example_generator, "flatten")
 proxy_builtin(type(example_generator))["flatmap"] = property(flatmapper);   hasattr(example_generator, "flatmap")
