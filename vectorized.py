@@ -5,12 +5,6 @@ import types
 
 import meta
 
-def fcn(index):
-    print "ONE", index
-    if index % 2 == 0:
-        print "TWO", index
-    print "THREE", index
-
 def callexec(code, name):
     env = {}
     exec(code, env)
@@ -134,6 +128,7 @@ def vectorize(fcn, numitems, *args, **kwds):
 
     iters = [instfcn(i, *args, **kwds) for i in range(numitems)]
     steps = [donext(x) for x in iters]
+    numiterations = 1
     while True:
         leading = max(steps)
         atleading = sum(1 if x == leading else 0 for x in steps)
@@ -146,10 +141,12 @@ def vectorize(fcn, numitems, *args, **kwds):
             for i in range(numitems):
                 if steps[i] < leading:
                     steps[i] = donext(iters[i])
+            numiterations += 1
             atleading = sum(1 if x == leading else 0 for x in steps)
 
         for i in range(numitems):
             if steps[i] == leading:
                 steps[i] = donext(iters[i])
+        numiterations += 1
 
-vectorize(fcn, 10)
+    return numiterations
