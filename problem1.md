@@ -158,7 +158,13 @@ events.schema.content["jets"].content.rename("Jet_btag", "btag")
 events.regenerate()
 ```
 
+## Discovering the Higgs
 
+Higgs bosons and Z bosons decay so quickly that they're gone before they ever reach a detector. All we can detect is the electrons and/or muons, and sometimes not even that, if an electron or muon flies past the detector without entering it. How can we tell which electrons or muons came from which Z boson or Higgs?
+
+One powerful technique relies on relativistic mass: Higgs bosons have a (fairly) well-defined mass and Z bosons have a (fairly) well-defined mass (with some variation due to quantum effects, some due to measurement error). When a particle decays, its decay products have the same total energy as the original particle (a scalar number), as well as the same total momentum (a vector: px, py, pz). The equation that relates mass, energy, and momentum is
+
+![](https://wikimedia.org/api/rest_v1/media/math/render/svg/baf9362dce85e812de86351f54ba2727bd2dad82)
 
 
 
@@ -167,10 +173,10 @@ events.regenerate()
 from math import *
 
 def mass(*particles):
+    energy = particles.map(lambda particle: particle.energy).sum
     px = particles.map(lambda particle: particle.px).sum
     py = particles.map(lambda particle: particle.py).sum
     pz = particles.map(lambda particle: particle.pz).sum
-    energy = particles.map(lambda particle: particle.energy).sum
     return sqrt(energy**2 - px**2 - py**2 - pz**2)
 
 masses = (events
