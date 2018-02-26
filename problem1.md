@@ -118,7 +118,7 @@ In experimental physics, we don't actually have any infinite datasets. We do, ho
 
 ## Get a realistic dataset
 
-The file `HZZ.root` is a very small sample of high energy physics collisions, not real but realistic (simulated by computer). They simulate Higgs bosons (one per event) that each decay into two Z bosons, and each of those decay into two electrons or two muons.
+The file [`HZZ.root`](http://scikit-hep.org/uproot/examples/HZZ.root) is a very small sample of high energy physics collisions, not real but realistic (simulated by computer). They simulate Higgs bosons (one per event) that each decay into two Z bosons, and each of those decay into two electrons or two muons.
 
 Here's how you can load it:
 
