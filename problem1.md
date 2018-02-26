@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+
 
 # pip install oamap (to view the columnar data as objects)
 import oamap.source.root
