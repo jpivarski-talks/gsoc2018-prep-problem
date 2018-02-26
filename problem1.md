@@ -1,3 +1,19 @@
+# Problem 1: functional HEP
+
+Start by installing uproot (to read HEP data files) and oamap (to interpret columnar data as objects).
+
+```bash
+pip install uproot --user
+pip install oamap --user
+```
+
+(If you prefer to use virtualenv or conda, go ahead and do that.)
+
+
+
+
+
+
 
 
 # pip install oamap (to view the columnar data as objects)
