@@ -1,5 +1,7 @@
 # Problem 1: functional HEP
 
+## Install dependencies
+
 Start by installing uproot (to read HEP data files) and oamap (to interpret columnar data as objects).
 
 ```bash
@@ -9,35 +11,41 @@ pip install oamap --user
 
 (If you prefer to use virtualenv or conda, go ahead and do that.)
 
+## Load them into Python
 
+```python
+>>> import oamap.source.root
+>>> import uproot
+```
 
+## Look at functional.py
 
+This is a toy example of making Python functional. It modifies Python's built-in list and tuple classes to have functional methods like `map` and `reduce`, which is not a safe thing to do in production, but it makes the examples look clear and simple.
 
+Think about the following examples and explain what they're doing.
 
+```python
+>>> import functional
+>>> [1, 2, 3, 4, 5].map(lambda x: x * 10)
+[10, 20, 30, 40, 50]
+>>> [1, 2, 3, 4, 5].reduce(lambda x, y: x + y)
+15
+```
 
+This library has a suite of useful functionals; here are just a couple. For more depth, look at the [functional.py code](functional.py).
 
-# pip install oamap (to view the columnar data as objects)
-import oamap.source.root
-
-# pip install uproot (to read the data files)
-import uproot
-
-# in this package (to make Python lists and OAMap ListProxies functional)
-import functional
-
-[1, 2, 3, 4, 5].map(lambda x: x * 10)
-
-[1, 2, 3, 4, 5].reduce(lambda x, y: x + y)
-
-[1, 2, 3, 4, 5].size
-
-[[1, 2], [3, 4, 5]].flatten
-
-["a", "b", "c", "d", "e"].enumerate
-
-[1, 2, 3, 4, 5].pairs(lambda x, y: [x, y])
-
-([1, 2, 3, 4, 5], ["a", "b", "c", "d", "e"]).table(lambda x, y: [x, y])
+```python
+>>> [1, 2, 3, 4, 5].size
+5
+>>> [[1, 2], [3, 4, 5]].flatten
+[1, 2, 3, 4, 5]
+>>> ["a", "b", "c", "d", "e"].enumerate
+[(0, 'a'), (1, 'b'), (2, 'c'), (3, 'd'), (4, 'e')]
+>>> [1, 2, 3, 4, 5].pairs(lambda x, y: [x, y])
+[[1, 2], [1, 3], [1, 4], [1, 5], [2, 3], [2, 4], [2, 5], [3, 4], [3, 5], [4, 5]]
+>>> ([1, 2, 3, 4, 5], ["a", "b", "c", "d", "e"]).table(lambda x, y: [x, y])
+[[1, 'a'], [1, 'b'], [1, 'c'], [1, 'd'], [1, 'e'], [2, 'a'], [2, 'b'], [2, 'c'], [2, 'd'], [2, 'e'], [3, 'a'], [3, 'b'], [3, 'c'], [3, 'd'], [3, 'e'], [4, 'a'], [4, 'b'], [4, 'c'], [4, 'd'], [4, 'e'], [5, 'a'], [5, 'b'], [5, 'c'], [5, 'd'], [5, 'e']]
+```
 
 g1 = [1, 2, 3, 4, 5].lazy
 g1
