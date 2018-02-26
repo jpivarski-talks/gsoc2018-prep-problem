@@ -44,3 +44,15 @@ array([ 54.77939728,  39.40155414,  31.69026934, ...,  62.39507159,
        174.20860614,  69.55613492])
 ```
 
+or in a vectorized way:
+
+```python
+Muon_P = numpy.sqrt(Muon_Px**2 + Muon_Py**2 + Muon_Pz**2)
+```
+
+The lack of indexes tells Numpy to perform `Muon_Px[i]**2` for all `i` before moving on to `Muon_Py**2`, etc. This is faster than the non-vectorized Python for loop because the loop over many items is applied to a uniform type in compiled code. It can also be faster than a non-vectorized loop in a compiled language like C++ because identical operations on neighboring elements in memory can take advantage of special instructions in the microprocessor that perform four multiplications side by side in one clock tick, rather than just one. In the extreme case, it could be loaded into a GPU and 1024 multiplications can be performed side by side.
+
+
+
+
+
