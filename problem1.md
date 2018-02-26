@@ -5,8 +5,8 @@
 Start by installing [uproot](https://github.com/scikit-hep/uproot/) (to read HEP data files) and [oamap](https://github.com/diana-hep/oamap) (to interpret columnar data as objects).
 
 ```bash
-pip install uproot --user
-pip install oamap --user
+$ pip install uproot --user
+$ pip install oamap --user
 ```
 
 (If you prefer to use virtualenv or conda, go ahead and do that.)
