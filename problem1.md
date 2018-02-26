@@ -20,7 +20,7 @@ $ pip install oamap --user
 
 ## Look at functional.py
 
-This is a toy example of making Python functional. It modifies Python's built-in list and tuple classes to have functional methods like `map` and `reduce`, which is not a safe thing to do in production, but it makes the examples look clear and simple.
+I've implemented a toy library that makes Python work as a functional language. It modifies Python's built-in list and tuple classes to have functional methods like `map` and `reduce`, which is not a safe thing to do in production, but it makes the examples look clear and simple.
 
 Think about the following examples and explain what they're doing.
 
