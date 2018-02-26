@@ -49,34 +49,85 @@ This library has a suite of useful functionals; here are just a couple. For more
  [5, 'a'], [5, 'b'], [5, 'c'], [5, 'd'], [5, 'e']]
 ```
 
-g1 = [1, 2, 3, 4, 5].lazy
-g1
+The same applies to generators, which are lazily evaluated lists in Python.
 
-g2 = g1.map(lambda x: x * 10)
-g2
+```python
+>>> g1 = [1, 2, 3, 4, 5].lazy
+>>> g1
+<generator object <genexpr> at 0x72ef60e54410>
+```
 
-g2.collect
+You can add operations to generators without anything being executed right away.
 
-def makeinfinite():
-    i = 0
-    while True:
-        yield i
-        i += 1
+```python
+>>> g2 = g1.map(lambda x: x * 10)
+>>> g2
+<generator object <genexpr> at 0x72ef60e543c0>
+```
 
-infinite = makeinfinite()
-infinite
+The opposite of `lazy` is `collect`, which evaluates a generator, turning it into a list.
 
-infinite.take(10)
+```python
+>>> g2.collect
+[10, 20, 30, 40, 50]
+```
 
-infinite.map(lambda x: x * 10).take(10)
+Lazy generators let us work with infinite lists.
 
-infinite.size
-infinite.reduce(lambda x, y: x + y)
+```python
+>>> def makeinfinite():
+...     i = 0
+...     while True:
+...         yield i
+...         i += 1
+...
+>>> infinite = makeinfinite()
+>>> infinite
+<generator object makeinfinite at 0x72ef60e54280>
+```
 
-# get the data (lazily, one column at a time)
-events = uproot.open("http://scikit-hep.org/uproot/examples/HZZ.root")["events"].oamap()
+We can't `collect` an infinite list, but we can `take` the first few elements.
 
-# replace some names, to be more natural in a functional context
+```python
+>>> infinite.take(10)
+[10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+```
+
+And we can apply operations to infinite lists.
+
+```python
+>>> infinite.map(lambda x: x * 10).take(10)
+[200, 210, 220, 230, 240, 250, 260, 270, 280, 290]
+```
+
+But we can never compute anything that applies to all of the elements of an infinite list because that would literally take forever. Thus, the same restriction applies to all lazy generators, because we never know whether a lazy generator is finite or infinite.
+
+```python
+>>> infinite.size
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+AttributeError: 'generator' object has no attribute 'size'
+>>> infinite.reduce(lambda x, y: x + y)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+AttributeError: 'generator' object has no attribute 'reduce'
+```
+
+In experimental physics, we don't actually have any infinite datasets. We do, however, have some very large datasets that we'd like to describe operations on without actually evaluating them. This is the benefit that functional programming would provide: the ability to describe, examine, and manipulate operations that have not yet been performed.
+
+## Get a realistic dataset
+
+The file `HZZ.root` is a very small sample of high energy physics collisions, not real but realistic (simulated by computer). They simulate Higgs bosons (one per event) that each decay into two Z bosons, and each of those decay into two electrons or two muons.
+
+Here's how you can load it:
+
+```python
+>>> events = uproot.open("http://scikit-hep.org/uproot/examples/HZZ.root")["events"].oamap()
+```
+
+Unfortunately, the names weren't defined in such a way that the objects look natural, so use the following to rename them. In this exercise, we'll assume the new names.
+
+```python
 events.schema.content.rename("NElectron", "electrons")
 events.schema.content["electrons"].content.rename("Electron_Px", "px")
 events.schema.content["electrons"].content.rename("Electron_Py", "py")
@@ -105,6 +156,13 @@ events.schema.content["jets"].content.rename("Jet_E", "energy")
 events.schema.content["jets"].content.rename("Jet_ID", "id")
 events.schema.content["jets"].content.rename("Jet_btag", "btag")
 events.regenerate()
+```
+
+
+
+
+
+# DONE
 
 from math import *
 
