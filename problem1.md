@@ -2,7 +2,7 @@
 
 ## Install dependencies
 
-Start by installing uproot (to read HEP data files) and oamap (to interpret columnar data as objects).
+Start by installing [uproot](https://github.com/scikit-hep/uproot/) (to read HEP data files) and [oamap](https://github.com/diana-hep/oamap) (to interpret columnar data as objects).
 
 ```bash
 pip install uproot --user
