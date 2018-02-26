@@ -100,7 +100,7 @@ And we can apply operations to infinite lists.
 [200, 210, 220, 230, 240, 250, 260, 270, 280, 290]
 ```
 
-But we can never compute anything that applies to all of the elements of an infinite list because that would literally take forever. Thus, the same restriction applies to all lazy generators, because we never know whether a lazy generator is finite or infinite.
+However, we can never compute anything that applies to all of the elements of an infinite list because that would literally take forever. Thus, the same restriction applies to all lazy generators, because we never know whether a lazy generator is finite or infinite.
 
 ```python
 >>> infinite.size
