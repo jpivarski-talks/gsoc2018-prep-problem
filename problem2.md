@@ -138,8 +138,14 @@ leading step 4 (2.44% at leading):
 12
 ```
 
-There are 2421 events and 2.44% of them have zero muons. The events with zero muons are the first to get to step 4 (the last step) and the rest catch up by going through the loop. Keep in mind that because this is vectorized, whenever any threads are still going through the loop, the others cannot proceed. It takes as long as the longest thread.
+There are 2421 events and 2.44% of them have zero muons. The events with zero muons are the first to get to step 4 (the last step) and the rest catch up by going through the loop. Keep in mind that because this is vectorized, whenever any threads are still going through the loop, the others cannot proceed. It takes as long as the longest thread, and that's bad: one event with many muons can spoil the whole calculation.
 
 This is basically how CUDA functions for GPUs work, except that this library illustrates the process, showing where algorithms slow down and why. (Actually, this `vectorize` function emulates one big "warp.")
 
+## Vectorizing mass calculations
 
+The problem for you to solve is the following: perform Z mass calculations in the fewest possible vectorized steps. There are three scales in this problem: (1) the number of events, (2) the number of muons per event, and (3) the number of muon _pairs_ per event. There will be multiple Z candidates in each event, not simply because the Higgs decays into two of them, but because the same muons can be combined in multiple ways.
+
+Bonus for also reducing the multiple Z candidates per event to the single best Z candidate per event (closest to 91 GeV). Double bonus for optimizing Higgs candidates. Triple bonus for hiding the vectorized function under a functional interface.
+
+As in problem 1, we're much more interested in your thought process than strictly minimizing the numerical output of the `vectorize` function. You'll probably notice that writing the same expression on two lines counts as two statements as writing it on one line, but if it doesn't involve any branching or looping, we don't care.
