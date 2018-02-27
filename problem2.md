@@ -52,7 +52,94 @@ Muon_P = numpy.sqrt(Muon_Px**2 + Muon_Py**2 + Muon_Pz**2)
 
 The lack of indexes tells Numpy to perform `Muon_Px[i]**2` for all `i` before moving on to `Muon_Py**2`, etc. This is faster than the non-vectorized Python for loop because the loop over many items is applied to a uniform type in compiled code. It can also be faster than a non-vectorized loop in a compiled language like C++ because identical operations on neighboring elements in memory can take advantage of special instructions in the microprocessor that perform four multiplications side by side in one clock tick, rather than just one. In the extreme case, it could be loaded into a GPU and 1024 multiplications can be performed side by side.
 
+The cost is conceptual: it's easier to think in non-vectorized terms than in vectorized terms. This summer's project is about implementing common HEP analysis tasks in a vectorized way and hiding that complexity in a functional interface.
 
+## Testing vectorized intuition
 
+To help in thinking about vectorized algorithms, I've implemented another toy library, [vectorized.py](vectorized.py).
+
+```python
+>>> from vectorized import vectorize
+>>> Muon_P = numpy.empty(len(Muon_Px))
+>>> def totalp(index, Muon_Px, Muon_Py, Muon_Pz, Muon_P):
+...     px2 = Muon_Px[index]**2
+...     py2 = Muon_Py[index]**2
+...     pz2 = Muon_Pz[index]**2
+...     Muon_P[index] = numpy.sqrt(px2 + py2 + pz2)
+... 
+>>> vectorize(totalp, len(Muon_Px), Muon_Px, Muon_Py, Muon_Pz, Muon_P)
+leading step 0 (100.0% at leading): 
+    px2 = (Muon_Px[index] ** 2)
+    ...advancing 1
+
+leading step 1 (100.0% at leading): 
+    py2 = (Muon_Py[index] ** 2)
+    ...advancing 2
+
+leading step 2 (100.0% at leading): 
+    pz2 = (Muon_Pz[index] ** 2)
+    ...advancing 3
+
+leading step 3 (100.0% at leading): 
+    Muon_P[index] = numpy.sqrt(((px2 + py2) + pz2))
+    ...advancing 4
+
+5
+```
+
+Since `len(Muon_Px)` is 3825, it starts 3825 instances of `totalp`, runs the first line for all of them, the second line for all of them, etc., printing out each line as it goes. Then it returns the number of vectorized steps. This is a simple function, an easily vectorizable one, so the number of vectorized steps is just the number of statements in the function.
+
+The trouble comes when we want to do something that involves if statements (branching) or for/while (looping). Suppose the problem is to find the maximum momentum in each event. It would help to know that we have access to the first and one-past-last muon index in each event:
+
+```python
+>>> starts = columns["Muon_Px"].starts
+>>> stops = columns["Muon_Px"].stops
+>>> starts
+array([   0,    2,    3, ..., 3822, 3823, 3824])
+>>> stops
+array([   2,    3,    5, ..., 3823, 3824, 3825])
+```
+
+(The first event has two muons, the second has one, etc.) We could try to write a vectorized function over the number of events or the number of muons: they're different! Let's try the number of events.
+
+```python
+>>> highest_by_event = numpy.empty(len(starts))
+
+>>> def maxp(index, starts, stops, Muon_P, highest_by_event):
+...     highest = float("nan")
+...     for i in range(starts[index], stops[index]):
+...         if numpy.isnan(highest) or Muon_P[i] > highest:
+...             highest = Muon_P[i]
+...     highest_by_event[index] = highest
+... 
+>>> vectorize(maxp, len(starts), starts, stops, Muon_P, highest_by_event)
+leading step 0 (100.0% at leading): 
+    highest = float('nan')
+    ...advancing 1
+
+leading step 1 (100.0% at leading): 
+    for i in range(starts[index], stops[index]):
+        if (numpy.isnan(highest) or (Muon_P[i] > highest)):    
+            highest = Muon_P[i]
+    ...advancing 2
+
+leading step 4 (2.44% at leading): 
+    highest_by_event[index] = highest
+    ...catching up 3 (2.44% at leading)
+    ...catching up 4 (2.44% at leading)
+    ...catching up 5 (41.64% at leading)
+    ...catching up 6 (86.66% at leading)
+    ...catching up 7 (99.13% at leading)
+    ...catching up 8 (99.75% at leading)
+    ...catching up 9 (99.92% at leading)
+    ...catching up 10 (99.96% at leading)
+    ...advancing 11
+
+12
+```
+
+There are 2421 events and 2.44% of them have zero muons. The events with zero muons are the first to get to step 4 (the last step) and the rest catch up by going through the loop. Keep in mind that because this is vectorized, whenever any threads are still going through the loop, the others cannot proceed. It takes as long as the longest thread.
+
+This is basically how CUDA functions for GPUs work, except that this library illustrates the process, showing where algorithms slow down and why. (Actually, this `vectorize` function emulates one big "warp.")
 
 

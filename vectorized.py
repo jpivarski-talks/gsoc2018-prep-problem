@@ -135,15 +135,17 @@ def vectorize(fcn, numitems, *args, **kwds):
         if leading == len(text):
             break
         else:
-            print("leading step {0} ({1}% at leading): {2}".format(leading, int(round(100.0*atleading/len(steps))), text[leading]))
+            print("leading step {0} ({1}% at leading): {2}".format(leading, round(100.0*atleading/len(steps), 2), text[leading]))
 
         while atleading < len(steps):
             for i in range(numitems):
                 if steps[i] < leading:
                     steps[i] = donext(iters[i])
+            print("    ...catching up {0} ({1}% at leading)".format(numiterations, round(100.0*atleading/len(steps), 2)))
             numiterations += 1
             atleading = sum(1 if x == leading else 0 for x in steps)
 
+        print("    ...advancing {0}\n".format(numiterations))
         for i in range(numitems):
             if steps[i] == leading:
                 steps[i] = donext(iters[i])
