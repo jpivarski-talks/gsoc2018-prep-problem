@@ -144,9 +144,9 @@ There are 2421 events and 2.44% of them have zero muons. The events with zero mu
 
 This is basically how CUDA functions for GPUs work, except that this library illustrates the process, showing where algorithms slow down and why. (Technically, this `vectorize` function emulates one big "warp.")
 
-## Vectorizing mass calculations
+## Problem to consider: Vectorizing mass calculations efficiently
 
-The problem for you to solve is the following: perform Z mass calculations in the fewest possible vectorized steps. There are three scales in this problem: (1) the number of events, (2) the number of muons per event, and (3) the number of muon _pairs_ per event. There will be multiple Z candidates in each event, not simply because the Higgs decays into two of them, but also because the same muons can be combined in multiple ways.
+The problem for you to solve is the following: perform Z mass calculations in the fewest possible vectorized steps. There are three scales in this problem: (1) the number of events, (2) the number of muons per event, and (3) the number of muon _pairs_ per event. There will be multiple Z candidates in each event, not simply because the Higgs decays into two of them, but also because the same list of muons can be combined in multiple ways.
 
 Bonus for also reducing the multiple Z candidates per event to the single best Z candidate per event (closest to 91 GeV). Double bonus for optimizing Higgs candidates. Triple bonus for hiding the vectorized function under a functional interface. These things are what the summer project is about (though we'll have more problems than just computing masses).
 
