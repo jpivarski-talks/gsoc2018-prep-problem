@@ -9,3 +9,5 @@ We're primarily interested in _how_ you solve the problems, not any numerical be
 In the process of working through these exercises, you might discover that this is not how you want to spend your summer. That's great! Follow your interests.
 
 Please e-mail your work to Jim Pivarski <pivarski@princeton.edu> and David Lange <david.lange@cern.ch>. Don't submit it as a pull request to this repository, because we don't want another applicant to be influenced by your ideas. Use the subject line "GSoC: DIANA-HEP/analysisfunctions" so that we don't lose track of your submission.
+
+Good luck!
