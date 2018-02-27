@@ -56,7 +56,7 @@ The cost, however, is conceptual: it's easier to think in non-vectorized terms t
 
 ## Testing vectorized intuition
 
-To help in thinking about vectorized algorithms, I've implemented another toy library, [vectorized.py](vectorized.py). The `vectorize` function takes a function, such as `totalp` below, and runs many copies of that function, one statement at a time. The function must take an `index` as its first argument (to know which element to operate on) and arrays for input (`Muon_Px, Muon_Py, Muon_Pz`) and output (`Muon_P`). (If you've ever written a CUDA kernel to program a GPU, this would be familiar. If not, here's how it works!)
+To help us think and talk about vectorized algorithms, I've implemented another toy library, [vectorized.py](vectorized.py). The `vectorize` function takes a function, such as `totalp` below, and runs many copies of that function, one statement at a time. The function must take an `index` as its first argument (to know which element to operate on) and arrays for input (`Muon_Px, Muon_Py, Muon_Pz`) and output (`Muon_P`). (If you've ever written a CUDA kernel to program a GPU, this would be familiar. If not, here's how it works!)
 
 ```python
 >>> from vectorized import vectorize
