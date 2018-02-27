@@ -4,7 +4,7 @@ This repository contains two problems that are similar to the ones we'd like to 
 
 They use toy libraries defined here ([functional.py](functional.py) and [vectorized.py](vectorized.py)) and you're free to modify them if it helps to do so. They were written quickly for this exercise, so they may be buggy.
 
-We're primarily interested in _how_ you solve the problem, not any numerical best optimization, so please write up your thought process. We may choose a candidate who doesn't technically have the best solution; we want the student who understands the issues best and shows the most promise for solving similar problems.
+We're primarily interested in _how_ you solve the problems, not any numerical best optimization, so please write up your thought process. We may choose a candidate who doesn't technically have the best solution; we want the student who understands the issues best and shows the most promise for solving similar problems.
 
 In the process of working through these exercises, you might discover that this is not how you want to spend your summer. That's great! Follow your interests.
 
