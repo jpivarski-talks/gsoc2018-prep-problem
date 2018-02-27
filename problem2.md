@@ -50,13 +50,13 @@ or in a vectorized way:
 Muon_P = numpy.sqrt(Muon_Px**2 + Muon_Py**2 + Muon_Pz**2)
 ```
 
-The lack of indexes tells Numpy to perform `Muon_Px[i]**2` for all `i` before moving on to `Muon_Py**2`, etc. This is faster than the non-vectorized Python for loop because the loop over many items is applied to a uniform type in compiled code. It can also be faster than a non-vectorized loop in a compiled language like C++ because identical operations on neighboring elements in memory can take advantage of special instructions in the microprocessor that perform four multiplications side by side in one clock tick, rather than just one. In the extreme case, it could be loaded into a GPU and 1024 multiplications can be performed side by side.
+The lack of indexes tells Numpy to perform `Muon_Px[i]**2` for all `i` before moving on to `Muon_Py**2`, etc. This is faster than the non-vectorized Python for loop because the loop over many items is applied to a uniform type in compiled code. It can also be faster than a non-vectorized loop in a compiled language like C++ because identical operations on neighboring elements in memory can take advantage of special instructions in the microprocessor that perform 4 multiplications side by side in one clock tick, rather than just one. In the extreme case, it could be loaded into a GPU and 1024 multiplications can be performed side by side.
 
-The cost is conceptual: it's easier to think in non-vectorized terms than in vectorized terms. This summer's project is about implementing common HEP analysis tasks in a vectorized way and hiding that complexity in a functional interface.
+The cost, however, is conceptual: it's easier to think in non-vectorized terms than in vectorized terms. This summer's project is about implementing common HEP analysis tasks in a vectorized way and hiding that complexity in a functional interface.
 
 ## Testing vectorized intuition
 
-To help in thinking about vectorized algorithms, I've implemented another toy library, [vectorized.py](vectorized.py).
+To help in thinking about vectorized algorithms, I've implemented another toy library, [vectorized.py](vectorized.py). The `vectorize` function takes a function, such as `totalp` below, and runs many copies of that function, one statement at a time. The function must take an `index` as its first argument (to know which element to operate on) and arrays for input (`Muon_Px, Muon_Py, Muon_Pz`) and output (`Muon_P`). (If you've ever written a CUDA kernel to program a GPU, this would be familiar. If not, here's how it works!)
 
 ```python
 >>> from vectorized import vectorize
@@ -140,7 +140,7 @@ leading step 4 (2.44% at leading):
 
 There are 2421 events and 2.44% of them have zero muons. The events with zero muons are the first to get to step 4 (the last step) and the rest catch up by going through the loop. Keep in mind that because this is vectorized, whenever any threads are still going through the loop, the others cannot proceed. It takes as long as the longest thread, and that's bad: one event with many muons can spoil the whole calculation.
 
-This is basically how CUDA functions for GPUs work, except that this library illustrates the process, showing where algorithms slow down and why. (Actually, this `vectorize` function emulates one big "warp.")
+This is basically how CUDA functions for GPUs work, except that this library illustrates the process, showing where algorithms slow down and why. (Technically, this `vectorize` function emulates one big "warp.")
 
 ## Vectorizing mass calculations
 
