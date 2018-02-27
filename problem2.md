@@ -150,4 +150,6 @@ The problem for you to solve is the following: perform Z mass calculations in th
 
 Bonus for also reducing the multiple Z candidates per event to the single best Z candidate per event (closest to 91 GeV). Double bonus for optimizing Higgs candidates. Triple bonus for hiding the vectorized function under a functional interface. These things are what the summer project is about (though we'll have more problems than just computing masses).
 
-As in problem 1, we're much more interested in your thought process than strictly minimizing the numerical output of the `vectorize` function. You'll probably notice that writing the same expression on two lines counts as two statements as writing it on one line, but if it doesn't involve any branching or looping, we don't care.
+As with problem 1, we're much more interested in your thought process than strictly minimizing the numerical output of the `vectorize` function. You'll probably notice that writing the same expression on two lines counts as two statements as writing it on one line, but if it doesn't involve any branching or looping, we don't care.
+
+As with problem 1, please e-mail your work to Jim Pivarski <pivarski@princeton.edu> and David Lange <david.lange@cern.ch>. Don't submit it as a pull request to this repository, because we don't want another applicant to be influenced by your ideas. Use the subject line "GSoC: DIANA-HEP/analysisfunctions" so that we don't lose track of your submission.
