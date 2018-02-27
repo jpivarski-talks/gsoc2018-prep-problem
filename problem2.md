@@ -87,9 +87,11 @@ leading step 3 (100.0% at leading):
 5
 ```
 
-Since `len(Muon_Px)` is 3825, it starts 3825 instances of `totalp`, runs the first line for all of them, the second line for all of them, etc., printing out each line as it goes. Then it returns the number of vectorized steps. This is a simple function, an easily vectorizable one, so the number of vectorized steps is just the number of statements in the function.
+Since `len(Muon_Px)` is 3825, it starts 3825 instances of `totalp`, runs the first line for all of them, the second line for all of them, etc., printing out each line as it goes. Then it returns the number of vectorized steps. Because `totalp` is a simple function (an easily vectorizable one), the number of vectorized steps is just the number of statements.
 
-The trouble comes when we want to do something that involves if statements (branching) or for/while (looping). Suppose the problem is to find the maximum momentum in each event. It would help to know that we have access to the first and one-past-last muon index in each event:
+The trouble comes when we want to do something that involves if statements (branching) or for/while blocks (looping). Suppose the problem is to find the maximum muon momentum of each event. Now there are two scales: (1) the number of events and (2) the number of muons.
+
+To begin with, we need a lookup table to associate event indexes with muon indexes. We have this table in the `.starts` and `.stops` of the muon columns.
 
 ```python
 >>> starts = columns["Muon_Px"].starts
@@ -100,7 +102,7 @@ array([   0,    2,    3, ..., 3822, 3823, 3824])
 array([   2,    3,    5, ..., 3823, 3824, 3825])
 ```
 
-(The first event has two muons, the second has one, etc.) We could try to write a vectorized function over the number of events or the number of muons: they're different! Let's try the number of events.
+(The first event has two muons, the second has one, the third has two, etc.) We have a choice in whether we index the vectorization on the number of events or the number of muons; let's do the number of events.
 
 ```python
 >>> highest_by_event = numpy.empty(len(starts))
