@@ -146,8 +146,8 @@ This is basically how CUDA functions for GPUs work, except that this library ill
 
 ## Vectorizing mass calculations
 
-The problem for you to solve is the following: perform Z mass calculations in the fewest possible vectorized steps. There are three scales in this problem: (1) the number of events, (2) the number of muons per event, and (3) the number of muon _pairs_ per event. There will be multiple Z candidates in each event, not simply because the Higgs decays into two of them, but because the same muons can be combined in multiple ways.
+The problem for you to solve is the following: perform Z mass calculations in the fewest possible vectorized steps. There are three scales in this problem: (1) the number of events, (2) the number of muons per event, and (3) the number of muon _pairs_ per event. There will be multiple Z candidates in each event, not simply because the Higgs decays into two of them, but also because the same muons can be combined in multiple ways.
 
-Bonus for also reducing the multiple Z candidates per event to the single best Z candidate per event (closest to 91 GeV). Double bonus for optimizing Higgs candidates. Triple bonus for hiding the vectorized function under a functional interface.
+Bonus for also reducing the multiple Z candidates per event to the single best Z candidate per event (closest to 91 GeV). Double bonus for optimizing Higgs candidates. Triple bonus for hiding the vectorized function under a functional interface. These things are what the summer project is about (though we'll have more problems than just computing masses).
 
 As in problem 1, we're much more interested in your thought process than strictly minimizing the numerical output of the `vectorize` function. You'll probably notice that writing the same expression on two lines counts as two statements as writing it on one line, but if it doesn't involve any branching or looping, we don't care.
