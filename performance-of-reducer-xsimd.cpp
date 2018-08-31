@@ -41,16 +41,18 @@ int main(int argc, char** argv) {
     std::clock_t starttime = std::clock();
 
     vecfloat zero_carry = {0.0, 0.0, 0.0, 0.0};
-    vecint step1 = {7, 0, 1, 2};
+    vecint step0 = {7, 6, 6, 6};
+    vecint step1 = {6, 0, 1, 2};
     vecint step2 = {6, 6, 0, 1};
     vecint tocarry = {6, 6, 6, 3};
 
     for (int i = 0;  i < num_parents;  i += 4) {
       vecfloat s = *((vecfloat*)&mutablescan[i]);
 
+      s += __builtin_shuffle(s, zero_carry, step0);
       s += __builtin_shuffle(s, zero_carry, step1);
       s += __builtin_shuffle(s, zero_carry, step2);
-      zero_carry += __builtin_shuffle(s, zero_carry, tocarry);
+      zero_carry = __builtin_shuffle(s, zero_carry, tocarry);
 
       std::cout << "HERE " << ((float*)&zero_carry)[0] << " " << ((float*)&zero_carry)[1] << " " << ((float*)&zero_carry)[2] << " " << ((float*)&zero_carry)[3] << std::endl;
 
