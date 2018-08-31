@@ -54,30 +54,38 @@ int main(int argc, char** argv) {
   cudaMalloc((void**)&gpu_content, num_content * 4);
   cudaMalloc((void**)&gpu_output, (num_offsets - 1) * 4);
 
-  cudaMemcpy(gpu_offsets, offsets, num_offsets * 4, cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_parents, parents, num_parents * 4, cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_content, content, num_content * 4, cudaMemcpyHostToDevice);
-  cudaDeviceSynchronize();
+  float* output = (float*)malloc((num_offsets - 1) * 4);
 
-  int* gpu_starts = gpu_offsets;
-  int* gpu_stops = (int*)((size_t)gpu_offsets + 4);
-
-  int threadsperblock = 1024;
-  int blocksize = num_parents / threadsperblock + 1;
-
-  std::clock_t starttime = std::clock();
-
-  for (int d = 1;  d < num_parents;  d *= 2) {
-    reduce_a<<<blocksize, threadsperblock>>>(num_parents, d, gpu_parents, gpu_content);
+  int numtimes = 10;
+  double totaltime = 0.0;
+  for (int time = 0;  time < numtimes;  time++) {
+    cudaMemcpy(gpu_offsets, offsets, num_offsets * 4, cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_parents, parents, num_parents * 4, cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_content, content, num_content * 4, cudaMemcpyHostToDevice);
     cudaDeviceSynchronize();
+
+    int* gpu_starts = gpu_offsets;
+    int* gpu_stops = (int*)((size_t)gpu_offsets + 4);
+
+    int threadsperblock = 1024;
+    int blocksize = num_parents / threadsperblock + 1;
+
+    std::clock_t starttime = std::clock();
+
+    for (int d = 1;  d < num_parents;  d *= 2) {
+      reduce_a<<<blocksize, threadsperblock>>>(num_parents, d, gpu_parents, gpu_content);
+      cudaDeviceSynchronize();
+    }
+
+    blocksize = (num_offsets - 1) / threadsperblock + 1;
+    reduce_b<<<blocksize, threadsperblock>>>(num_offsets - 1, gpu_starts, gpu_stops, gpu_content, gpu_output);
+
+    std::clock_t stoptime = std::clock();
+
+    cudaMemcpy(output, gpu_output, (num_offsets - 1) * 4, cudaMemcpyDeviceToHost);
+
+    totaltime += (stoptime - starttime) / (double)CLOCKS_PER_SEC;
   }
 
-  blocksize = (num_offsets - 1) / threadsperblock + 1;
-  reduce_b<<<blocksize, threadsperblock>>>(num_offsets - 1, gpu_starts, gpu_stops, gpu_content, gpu_output);
-
-  float* output = (float*)malloc((num_offsets - 1) * 4);
-  cudaMemcpy(output, gpu_output, (num_offsets - 1) * 4, cudaMemcpyDeviceToHost);
-
-  std::clock_t stoptime = std::clock();
-  std::cout << 1e3 * (std::clock() - starttime) / (double) CLOCKS_PER_SEC << " ms" << std::endl;
+  std::cout << (1e3 * totaltime) / numtimes << " ms" << std::endl;
 }
