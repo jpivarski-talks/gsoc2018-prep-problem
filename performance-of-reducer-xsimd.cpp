@@ -46,23 +46,20 @@ int main(int argc, char** argv) {
     vecint step2 = {6, 6, 0, 1};
     vecint tocarry = {6, 6, 6, 3};
 
+    vecint p_zero_carry = {0, 0, 0, 0};
+
+    vecfloat s;
+    vecint p;
     for (int i = 0;  i < num_parents;  i += 4) {
-      vecfloat s = *((vecfloat*)&mutablescan[i]);
+      s = *((vecfloat*)&mutablescan[i]);
+      p = *((vecint*)&parents[i]);
 
       s += __builtin_shuffle(s, zero_carry, step0);
       s += __builtin_shuffle(s, zero_carry, step1);
       s += __builtin_shuffle(s, zero_carry, step2);
       zero_carry = __builtin_shuffle(s, zero_carry, tocarry);
 
-      std::cout << "HERE " << ((float*)&zero_carry)[0] << " " << ((float*)&zero_carry)[1] << " " << ((float*)&zero_carry)[2] << " " << ((float*)&zero_carry)[3] << std::endl;
-
       *((vecfloat*)&mutablescan[i]) = s;
-
-      if (i >= 20) break;
-    }
-
-    for (int i = 0;  i < 20;  i++) {
-      std::cout << i+1 << " " << mutablescan[i] << " " << (i % 4 == 0 ? "<-" : "") << std::endl;
     }
 
     // for (int i = 0;  i < num_offsets - 1;  i++) {
