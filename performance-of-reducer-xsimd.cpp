@@ -3,7 +3,9 @@
 #include <ctime>
 #include <iostream>
 #include <cstring>
-#include "xsimd/xsimd.hpp"
+
+typedef int vecint __attribute__ ((vector_size (16)));
+typedef float vecfloat __attribute__ ((vector_size (16)));
 
 int main(int argc, char** argv) {
   FILE *f_offsets = fopen(argv[1], "r");
@@ -31,55 +33,45 @@ int main(int argc, char** argv) {
 
   float* output = (float*)malloc((num_offsets - 1) * 4);
 
-  int numtimes = 10;
+  int numtimes = 1;   // 10;
   double totaltime = 0.0;
   for (int time = 0;  time < numtimes;  time++) {
     memcpy(mutablescan, content, num_content * 4);
 
     std::clock_t starttime = std::clock();
 
-    for (int d = 1;  d < num_parents;  d *= 2) {
-      xsimd::batch<int32_t, 8> p;
-      xsimd::batch<int32_t, 8> s;
+    vecfloat zero_carry = {0.0, 0.0, 0.0, 0.0};
+    vecint step1 = {7, 0, 1, 2};
+    vecint step2 = {6, 6, 0, 1};
+    vecint tocarry = {6, 6, 6, 3};
 
-      xsimd::batch<int32_t, 8> step1({0, 0, 1, 2, 3, 4, 5, 6});
-      xsimd::batch<int32_t, 8> step2({0, 0, 0, 1, 2, 3, 4, 5});
-      xsimd::batch<int32_t, 8> step3({0, 0, 0, 0, 0, 1, 2, 3});
+    for (int i = 0;  i < num_parents;  i += 4) {
+      vecfloat s = *((vecfloat*)&mutablescan[i]);
 
-      xsimd::batch<int32_t, 8> carry({0, 0, 0, 0, 0, 0, 0, 0});
-      xsimd::batch<int32_t, 8> scatt({7, 7, 7, 7, 7, 7, 7, 7});
+      s += __builtin_shuffle(s, zero_carry, step1);
+      s += __builtin_shuffle(s, zero_carry, step2);
+      zero_carry += __builtin_shuffle(s, zero_carry, tocarry);
 
-      for (size_t i = 0;  i < num_parents;  i += 8) {
-        p.load_unaligned(&parents[i]);
-        s.load_unaligned(&mutablescan[i]);
+      std::cout << "HERE " << ((float*)&zero_carry)[0] << " " << ((float*)&zero_carry)[1] << " " << ((float*)&zero_carry)[2] << " " << ((float*)&zero_carry)[3] << std::endl;
 
-        s += ;
+      *((vecfloat*)&mutablescan[i]) = s;
 
-        s += carry;
-        
-        carry = HERE;
-
-        p.store_unaligned(&mutablescan[i]);
-      }
+      if (i >= 20) break;
     }
 
-    // for (int d = 1;  d < num_parents;  d *= 2) {
-    //   for (int i = d;  i < num_parents;  i++) {
-    //     if (parents[i] == parents[i - d]) {
-    //       mutablescan[i] += mutablescan[i - d];
-    //     }
+    for (int i = 0;  i < 20;  i++) {
+      std::cout << i+1 << " " << mutablescan[i] << " " << (i % 4 == 0 ? "<-" : "") << std::endl;
+    }
+
+    // for (int i = 0;  i < num_offsets - 1;  i++) {
+    //   if (offsets[i] == offsets[i + 1]) {
+    //     output[i] = 0.0;
+    //   }
+    //   else {
+    //     output[i] = mutablescan[offsets[i + 1] - 1];
     //   }
     // }
 
-    for (int i = 0;  i < num_offsets - 1;  i++) {
-      if (offsets[i] == offsets[i + 1]) {
-        output[i] = 0.0;
-      }
-      else {
-        output[i] = mutablescan[offsets[i + 1] - 1];
-      }
-    }
-    
     std::clock_t stoptime = std::clock();    
     totaltime += (stoptime - starttime) / (double)CLOCKS_PER_SEC;
   }
