@@ -10,14 +10,14 @@ __global__ void reduce_a(int lenparents, int d, int* parents, float* mutablescan
   // __syncthreads();
 }
 
-__global__ void reduce_b(int lenstarts, int* starts, int* stops, float* scan, float* output) {
+__global__ void reduce_b(int lenstarts, int* starts, float* scan, float* output) {
   unsigned int i = threadIdx.x + blockIdx.x*blockDim.x;
   if (i < lenstarts) {
-    if (starts[i] == stops[i]) {
+    if (offsets[i] == offsets[i + 1]) {
       output[i] = 0.0;
     }
     else {
-      output[i] = scan[stops[i] - 1];
+      output[i] = scan[offsets[i + 1] - 1];
     }
   }
 }
@@ -64,9 +64,6 @@ int main(int argc, char** argv) {
     cudaMemcpy(gpu_content, content, num_content * 4, cudaMemcpyHostToDevice);
     cudaDeviceSynchronize();
 
-    int* gpu_starts = gpu_offsets;
-    int* gpu_stops = (int*)((size_t)gpu_offsets + 4);
-
     int threadsperblock = 1024;
     int blocksize = num_parents / threadsperblock + 1;
 
@@ -78,7 +75,7 @@ int main(int argc, char** argv) {
     }
 
     blocksize = (num_offsets - 1) / threadsperblock + 1;
-    reduce_b<<<blocksize, threadsperblock>>>(num_offsets - 1, gpu_starts, gpu_stops, gpu_content, gpu_output);
+    reduce_b<<<blocksize, threadsperblock>>>(num_offsets - 1, gpu_offsets, gpu_content, gpu_output);
 
     std::clock_t stoptime = std::clock();
 
