@@ -1,6 +1,6 @@
 import numpy
 
-tasksize = 100000000
+tasksize = 10000000   # 100000000
 
 for averagesize in 0.3, 0.5, 1.0, 2.0, 3.0, 5.0, 10.0, 20.0, 30.0, 50.0, 100.0, 200.0, 300.0, 500.0, 1000.0:
     print(averagesize)

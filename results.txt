@@ -30,7 +30,7 @@ DATA/content-200.0 1287.43 MHz
 DATA/content-300.0 1161.5 MHz
 DATA/content-500.0 1059.92 MHz
 DATA/content-1000.0 1041.18 MHz
-xsimd
+avx2
 DATA/content-0.3 283.475 MHz
 DATA/content-0.5 382.046 MHz
 DATA/content-1.0 500.033 MHz
@@ -46,6 +46,22 @@ DATA/content-200.0 796.166 MHz
 DATA/content-300.0 806.33 MHz
 DATA/content-500.0 812.55 MHz
 DATA/content-1000.0 796.772 MHz
+avx512
+DATA/content-0.3 334.355 MHz
+DATA/content-0.5 464.895 MHz
+DATA/content-1.0 646.401 MHz
+DATA/content-2.0 795.031 MHz
+DATA/content-3.0 864.057 MHz
+DATA/content-5.0 927.649 MHz
+DATA/content-10.0 981.958 MHz
+DATA/content-20.0 1012.97 MHz
+DATA/content-30.0 1051.08 MHz
+DATA/content-50.0 1100.74 MHz
+DATA/content-100.0 1168.08 MHz
+DATA/content-200.0 1212.01 MHz
+DATA/content-300.0 1223.87 MHz
+DATA/content-500.0 1226.03 MHz
+DATA/content-1000.0 1248.95 MHz
 cuda-2
 DATA/content-0.3 2382.15 MHz
 DATA/content-0.5 2943.53 MHz
