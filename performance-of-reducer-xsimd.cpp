@@ -40,26 +40,34 @@ int main(int argc, char** argv) {
 
     std::clock_t starttime = std::clock();
 
+    vecfloat zero = {0.0, 0.0, 0.0, 0.0};
     vecfloat zero_carry = {0.0, 0.0, 0.0, 0.0};
+    vecint p_zero_carry = {-1, -1, -1, -1};
     vecint step0 = {7, 6, 6, 6};
     vecint step1 = {6, 0, 1, 2};
     vecint step2 = {6, 6, 0, 1};
     vecint tocarry = {6, 6, 6, 3};
-
-    vecint p_zero_carry = {0, 0, 0, 0};
 
     vecfloat s;
     vecint p;
     for (int i = 0;  i < num_parents;  i += 4) {
       s = *((vecfloat*)&mutablescan[i]);
       p = *((vecint*)&parents[i]);
-
-      s += __builtin_shuffle(s, zero_carry, step0);
-      s += __builtin_shuffle(s, zero_carry, step1);
-      s += __builtin_shuffle(s, zero_carry, step2);
+      
+      s += (p == __builtin_shuffle(p, p_zero_carry, step0)) ? __builtin_shuffle(s, zero_carry, step0) : zero;
+      s += (p == __builtin_shuffle(p, p_zero_carry, step1)) ? __builtin_shuffle(s, zero_carry, step1) : zero;
+      s += (p == __builtin_shuffle(p, p_zero_carry, step2)) ? __builtin_shuffle(s, zero_carry, step2) : zero;
       zero_carry = __builtin_shuffle(s, zero_carry, tocarry);
+      p_zero_carry = __builtin_shuffle(p, p_zero_carry, tocarry);
 
       *((vecfloat*)&mutablescan[i]) = s;
+    }
+
+    for (int i = 0;  i < 20;  i++) {
+      for (int j = offsets[i];  j < offsets[i + 1];  j++) {
+        std::cout << mutablescan[j] << " ";
+      }
+      std::cout << std::endl;
     }
 
     // for (int i = 0;  i < num_offsets - 1;  i++) {
