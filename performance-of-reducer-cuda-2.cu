@@ -2,16 +2,30 @@
 #include <ctime>
 #include <iostream>
 
-__global__ void reduce_a(int lenparents, int d, int* parents, float* mutablescan) {
+__global__ void reduce_a(int lenparents, int* parents, float* mutablescan) {
   unsigned int i = threadIdx.x + blockIdx.x*blockDim.x;
-  if (i < lenparents  &&  i >= d  &&  parents[i] == parents[i - d]) {
-    mutablescan[i] = mutablescan[i] + mutablescan[i - d];
+
+  for (int d = 1;  d < 1024;  d *= 2) {
+    if (i < lenparents  &&  i >= d  &&  parents[i] == parents[i - d]) {
+      mutablescan[i] = mutablescan[i] + mutablescan[i - d];
+    }
+    __syncthreads();
   }
-  __syncthreads();
 }
 
-__global__ void reduce_b(int lenstarts, int* offsets, float* scan, float* output) {
+__global__ void reduce_b(int lenparents, int* parents, float* mutablescan) {
+  unsigned int i = (threadIdx.x + blockIdx.x*blockDim.x + 1) * 1024;
+  
+  int extra = 0;
+  while (i + extra < lenparents  &&  extra < 1024  &&  parents[i + extra] == parents[i - 1]) {
+    mutablescan[i + extra] += mutablescan[i - 1];
+    extra++;
+  }
+}
+
+__global__ void reduce_c(int lenstarts, int* offsets, float* scan, float* output) {
   unsigned int i = threadIdx.x + blockIdx.x*blockDim.x;
+
   if (i < lenstarts) {
     if (offsets[i] == offsets[i + 1]) {
       output[i] = 0.0;
@@ -69,13 +83,13 @@ int main(int argc, char** argv) {
 
     std::clock_t starttime = std::clock();
 
-    for (int d = 1;  d < num_parents;  d *= 2) {
-      reduce_a<<<blocksize, threadsperblock>>>(num_parents, d, gpu_parents, gpu_content);
-      // cudaDeviceSynchronize();
-    }
+    reduce_a<<<blocksize, threadsperblock>>>(num_parents, gpu_parents, gpu_content);
+
+    blocksize = (num_parents / 1024) / threadsperblock + 1;
+    reduce_b<<<blocksize, threadsperblock>>>(num_parents, gpu_parents, gpu_content);
 
     blocksize = (num_offsets - 1) / threadsperblock + 1;
-    reduce_b<<<blocksize, threadsperblock>>>(num_offsets - 1, gpu_offsets, gpu_content, gpu_output);
+    reduce_c<<<blocksize, threadsperblock>>>(num_offsets - 1, gpu_offsets, gpu_content, gpu_output);
 
     cudaDeviceSynchronize();
     std::clock_t stoptime = std::clock();

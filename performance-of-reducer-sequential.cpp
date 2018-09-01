@@ -8,21 +8,21 @@ int main(int argc, char** argv) {
   int num_offsets = ftell(f_offsets) / 4;
   fseek(f_offsets, 0, SEEK_SET);
   int* offsets = (int*)malloc(num_offsets * 4);
-  fread(offsets, 4, num_offsets, f_offsets);
+  if (!fread(offsets, 4, num_offsets, f_offsets)) return -1;
   
   FILE *f_parents = fopen(argv[2], "r");
   fseek(f_parents, 0, SEEK_END);
   int num_parents = ftell(f_parents) / 4;
   fseek(f_parents, 0, SEEK_SET);
   int* parents = (int*)malloc(num_parents * 4);
-  fread(parents, 4, num_parents, f_parents);
+  if (!fread(parents, 4, num_parents, f_parents)) return -1;
   
   FILE *f_content = fopen(argv[3], "r");
   fseek(f_content, 0, SEEK_END);
   int num_content = ftell(f_content) / 4;
   fseek(f_content, 0, SEEK_SET);
   float* content = (float*)malloc(num_content * 4);
-  fread(content, 4, num_content, f_content);
+  if (!fread(content, 4, num_content, f_content)) return -1;
 
   float* output = (float*)malloc((num_offsets - 1) * 4);
 
@@ -42,5 +42,6 @@ int main(int argc, char** argv) {
     totaltime += (stoptime - starttime) / (double)CLOCKS_PER_SEC;
   }
 
-  std::cout << (1e3 * totaltime) / numtimes << " ms" << std::endl;
+  std::cout << argv[3] << " " << (num_content * numtimes) * 1e-6 / totaltime << " MHz" << std::endl;
+  return 0;
 }
