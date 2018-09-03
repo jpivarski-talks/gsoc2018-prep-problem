@@ -6,11 +6,7 @@
 #include <cstring>
 
 #define MAX_VECTOR_SIZE 512
-// #define MAX_VECTOR_SIZE 256
 #include "vectorclass.h"
-
-// typedef int vecint __attribute__ ((vector_size (4*sizeof(int))));
-// typedef float vecfloat __attribute__ ((vector_size (4*sizeof(float))));
 
 int main(int argc, char** argv) {
   FILE *f_offsets = fopen(argv[1], "r");
@@ -39,50 +35,15 @@ int main(int argc, char** argv) {
   float* content = (float*)malloc(int(ceil(num_content / 16.0) * 16.0) * 4);
   if (!fread(content, 4, num_content, f_content)) return -1;
 
-  // float* mutablescan = (float*)malloc(num_content * 4);
-
   float* output = (float*)malloc((num_offsets - 1 + 1) * 4);
-  for (int i = 0;  i < num_offsets - 1 + 1;  i++) {
-    output[i] = 0.0;
-  }
 
-  int numtimes = 10;
+  long numtimes = 30;
   double totaltime = 0.0;
-  for (int time = 0;  time < numtimes;  time++) {
-    // memcpy(mutablescan, content, num_content * 4);
-
+  for (long time = 0;  time < numtimes;  time++) {
     std::clock_t starttime = std::clock();
 
+    memset(output, 0, sizeof(float) * (num_offsets - 1));
 
-
-#if MAX_VECTOR_SIZE == 256
-    Vec8f s;
-    Vec8f scarry = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    Vec8i p;
-    Vec8i pcarry = {-1, -1, -1, -1, -1, -1, -1, -1};
-        
-    for (int i = 0;  i < num_parents;  i += 8) {
-      s.load(&mutablescan[i]);
-      p.load(&parents[i]);
-
-      s = if_add(p == pcarry, s, scarry);
-
-      s = if_add(p != permute8i<-1,  0,  1,  2, 3, 4, 5, 6>(p),
-                 s,   permute8f<-1,  0,  1,  2, 3, 4, 5, 6>(s));
-
-      s = if_add(p != permute8i<-1, -1,  0,  1, 2, 3, 4, 5>(p),
-                 s,   permute8f<-1, -1,  0,  1, 2, 3, 4, 5>(s));
-
-      s = if_add(p != permute8i<-1, -1, -1, -1, 0, 1, 2, 3>(p),
-                 s,   permute8f<-1, -1, -1, -1, 0, 1, 2, 3>(s));
-
-      scarry = permute8f<7, -256, -256, -256, -256, -256, -256, -256>(s);
-      pcarry = permute8i<7,   -1,   -1,   -1,   -1,   -1,   -1,   -1>(p);
-
-      s.store(&mutablescan[i]);
-    }
-#endif
-#if MAX_VECTOR_SIZE == 512
     Vec16f s;
     Vec16f scarry = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     Vec16i p;
@@ -91,94 +52,86 @@ int main(int argc, char** argv) {
     Vec16i p2;
     Vec16i p2none = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 
+    // Vec16f tmp;
+
     for (int i = 0;  i < num_parents;  i += 16) {
-      s.load(&content[i]);
-      p.load(&parents[i]);
-      p2.load(&parents[i + 1]);
+        s.load(&content[i]);
+        p.load(&parents[i]);
+        p2.load(&parents[i + 1]);
 
-      s = if_add(p == pcarry, s, scarry);
+        s = if_add(p == pcarry, s, scarry);
 
-      s = if_add(p != permute16i<-1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14>(p),
-                 s,   permute16f<-1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14>(s));
+        s = if_add(p == permute16i<-1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14>(p),
+                   s,   permute16f<-1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14>(s));
 
-      s = if_add(p != permute16i<-1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13>(p),
-                 s,   permute16f<-1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13>(s));
+        s = if_add(p == permute16i<-1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13>(p),
+                   s,   permute16f<-1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13>(s));
 
-      s = if_add(p != permute16i<-1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11>(p),
-                 s,   permute16f<-1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11>(s));
+        s = if_add(p == permute16i<-1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11>(p),
+                   s,   permute16f<-1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11>(s));
 
-      s = if_add(p != permute16i<-1, -1, -1, -1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7>(p),
-                 s,   permute16f<-1, -1, -1, -1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7>(s));
+        s = if_add(p == permute16i<-1, -1, -1, -1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7>(p),
+                   s,   permute16f<-1, -1, -1, -1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7>(s));
 
-      scarry = permute16f<15, -256, -256, -256, -256, -256, -256, -256, -256, -256, -256, -256, -256, -256, -256, -256>(s);
-      pcarry = permute16i<15,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1>(p);
+        scarry = blend16f<15, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31>(s, scarry);
+        pcarry = blend16i<15, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31>(p, pcarry);
 
-      scatter(select(p == p2, p2none, p), num_offsets, s, output);
+        scatter(select(p == p2, p2none, p), num_offsets - 1, s, output);
+
+        // tmp += s;
     }
-#endif
 
-
-
-
-
-    // vecfloat zero = {0.0, 0.0, 0.0, 0.0};
-    // vecfloat zero_carry = {0.0, 0.0, 0.0, 0.0};
-    // vecint p_zero_carry = {-1, -1, -1, -1};
-    // vecint step0 = {7, 6, 6, 6};
-    // vecint step1 = {6, 0, 1, 2};
-    // vecint step2 = {6, 6, 0, 1};
-    // vecint tocarry = {6, 6, 6, 3};
-
-    // vecfloat s;
-    // vecint p;
-    // for (int i = 0;  i < num_parents;  i += 4) {
-    //   s = *((vecfloat*)&mutablescan[i]);
-    //   p = *((vecint*)&parents[i]);
-      
-    //   s += (p == __builtin_shuffle(p, p_zero_carry, step0)) ? __builtin_shuffle(s, zero_carry, step0) : zero;
-    //   s += (p == __builtin_shuffle(p, p_zero_carry, step1)) ? __builtin_shuffle(s, zero_carry, step1) : zero;
-    //   s += (p == __builtin_shuffle(p, p_zero_carry, step2)) ? __builtin_shuffle(s, zero_carry, step2) : zero;
-      
-    //   zero_carry = __builtin_shuffle(s, zero_carry, tocarry);
-    //   p_zero_carry = __builtin_shuffle(p, p_zero_carry, tocarry);
-
-    //   *((vecfloat*)&mutablescan[i]) = s;
-    // }
-
-
-
-
-
-    // for (int i = 0;  i < num_offsets - 1;  i++) {
-    //   if (offsets[i] == offsets[i + 1]) {
-    //     output[i] = 0.0;
-    //   }
-    //   else {
-    //     output[i] = mutablescan[offsets[i + 1] - 1];
-    //   }
-    // }
-    
-    // Vec16f zero = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    // Vec16i starts;
-    // Vec16i stops;
-    // Vec16f lasts;
-    // Vec16f out;
-    
-    // for (int i = 0;  i < num_offsets - 1;  i += 16) {
-    //   starts.load(&offsets[i]);
-    //   stops.load(&offsets[i + 1]);
-
-    //   lasts = lookup<100016765>(stops - 1, mutablescan);
-
-    //   out = select(starts == -1  ||  starts == stops, zero, lasts);
-
-    //   out.store(&output[i]);      
-    // }
+    // std::cout << tmp[0] << std::endl;
 
     std::clock_t stoptime = std::clock();    
     totaltime += (stoptime - starttime) / (double)CLOCKS_PER_SEC;
   }
 
-  std::cout << argv[3] << " " << (num_content * numtimes) * 1e-6 / totaltime << " MHz" << std::endl;
+  std::cout << argv[3] << " " << (num_content * numtimes) * 1e-6 / totaltime << " MHz; offsets " << num_offsets << std::endl;
   return 0;
 }
+
+/*
+void vectorized16_max_impl(int32_t len_offsets, int32_t len_parents, int32_t* parents, float* content, float* output) {
+    for (int i = 0;  i < len_offsets - 1;  i++) {
+        output[i] = -INFINITY;
+    }
+    
+    Vec16f s;
+    Vec16f scarry = {-INFINITY, -INFINITY, -INFINITY, -INFINITY, -INFINITY, -INFINITY, -INFINITY, -INFINITY,
+                     -INFINITY, -INFINITY, -INFINITY, -INFINITY, -INFINITY, -INFINITY, -INFINITY, -INFINITY};
+    Vec16f szero  = {-INFINITY, -INFINITY, -INFINITY, -INFINITY, -INFINITY, -INFINITY, -INFINITY, -INFINITY,
+                     -INFINITY, -INFINITY, -INFINITY, -INFINITY, -INFINITY, -INFINITY, -INFINITY, -INFINITY};
+    Vec16f sblend;
+    Vec16i p;
+    Vec16i pcarry = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+
+    Vec16i p2;
+    Vec16i p2none = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+
+    for (int i = 0;  i < len_parents;  i += 16) {
+        s.load(&content[i]);
+        p.load(&parents[i]);
+        p2.load(&parents[i + 1]);
+
+        s = select((p == pcarry) & (scarry > s), scarry, s);
+
+        sblend           = blend16f<16,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14>(s, szero);
+        s = select((p == permute16i<-1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14>(p)) & (sblend > s), sblend, s);
+
+        sblend           = blend16f<16, 16,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13>(s, szero);
+        s = select((p == permute16i<-1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13>(p)) & (sblend > s), sblend, s);
+
+        sblend           = blend16f<16, 16, 16, 16,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11>(s, szero);
+        s = select((p == permute16i<-1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11>(p)) & (sblend > s), sblend, s);
+
+        sblend           = blend16f<16, 16, 16, 16, 16, 16, 16, 16,  0,  1,  2,  3,  4,  5,  6,  7>(s, szero);
+        s = select((p == permute16i<-1, -1, -1, -1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7>(p)) & (sblend > s), sblend, s);
+
+        scarry = blend16f<15, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31>(s, scarry);
+        pcarry = blend16i<15, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31>(p, pcarry);
+
+        scatter(select(p == p2, p2none, p), len_offsets, s, output);
+    }
+}
+*/

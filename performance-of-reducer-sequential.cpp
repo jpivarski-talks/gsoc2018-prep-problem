@@ -26,9 +26,9 @@ int main(int argc, char** argv) {
 
   float* output = (float*)malloc((num_offsets - 1) * 4);
 
-  int numtimes = 10;
+  long numtimes = 30;
   double totaltime = 0.0;
-  for (int time = 0;  time < numtimes;  time++) {
+  for (long time = 0;  time < numtimes;  time++) {
     std::clock_t starttime = std::clock();
 
     for (int i = 0;  i < num_offsets - 1;  i++) {
