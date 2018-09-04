@@ -1,9 +1,8 @@
 #include "stdio.h"
-#include "stdint.h"
 #include "math.h"
+#include "string.h"
 #include <ctime>
 #include <iostream>
-#include <cstring>
 
 #define MAX_VECTOR_SIZE 512
 #include "vectorclass.h"
@@ -15,8 +14,8 @@ int main(int argc, char** argv) {
   fseek(f_offsets, 0, SEEK_SET);
   int* offsets = (int*)malloc(int(ceil(num_offsets / 16.0) * 16.0) * 4);
   if (!fread(offsets, 4, num_offsets, f_offsets)) return -1;
-  for (int i = num_offsets;  i < int(ceil(num_offsets / 16.0) * 16.0);  i++)
-    offsets[i] = -1;
+  // for (int i = num_offsets;  i < int(ceil(num_offsets / 16.0) * 16.0);  i++)
+  //   offsets[i] = -1;
   
   FILE *f_parents = fopen(argv[2], "r");
   fseek(f_parents, 0, SEEK_END);
@@ -24,9 +23,9 @@ int main(int argc, char** argv) {
   fseek(f_parents, 0, SEEK_SET);
   int* parents = (int*)malloc(int(ceil(num_parents / 16.0) * 16.0 + 1.0) * 4);
   if (!fread(parents, 4, num_parents, f_parents)) return -1;
-  for (int i = 0;  i < num_parents + 1;  i++) {
-    parents[i] = -1;
-  }
+  // for (int i = 0;  i < num_parents + 1;  i++) {
+  //   parents[i] = -1;
+  // }
 
   FILE *f_content = fopen(argv[3], "r");
   fseek(f_content, 0, SEEK_END);
@@ -35,7 +34,7 @@ int main(int argc, char** argv) {
   float* content = (float*)malloc(int(ceil(num_content / 16.0) * 16.0) * 4);
   if (!fread(content, 4, num_content, f_content)) return -1;
 
-  float* output = (float*)malloc((num_offsets - 1 + 1) * 4);
+  float* output = (float*)malloc(int(ceil((num_offsets - 1) / 16.0) * 16.0) * 4);
 
   long numtimes = 30;
   double totaltime = 0.0;
